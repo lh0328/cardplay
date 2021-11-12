@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>翻牌消消乐</title>
+    <link rel="icon" href="pdimg/logo.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        ul,li {
+            list-style: none;
+        }
+        #bg {
+            position:fixed;
+            top: 0;
+            left: 0;
+            z-index:-999;
+        }
+        #strat-play {
+            display: block;
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 420px;
+            animation:mybig 2s;
+            animation-iteration-count: infinite;
+            -webkit-animation:mybig 2s; /* Safari and Chrome */
+            -webkit-animation-iteration-count: infinite;
+        }
+        #strat-play:hover {
+            cursor: pointer;
+        }
+        @keyframes mybig
+        {
+            from {font-size: 50px;}
+            to {font-size: 100px;}
+        }
+        @-webkit-keyframes mybig /* Safari and Chrome */
+        {
+            from {font-size: 50px;}
+            to {font-size: 100px;}
+        }
+        #game-level {
+            display: none;
+            width: 500px;
+            margin: 360px auto 0;
+            color: white;
+            opacity: 0.8;
+        }
+        #game-level p {
+            font-size: 40px;
+            font-weight: bold;
+            text-align: center;
+            color: #CAC04D;
+        }
+        #game-level .levels>div {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 120px;
+            border-radius: 50%;
+            margin: 15px 20px;
+            background: url("pdimg/levelbg.jpg") no-repeat;
+            background-size: 100% 100%;
+        }
+        #game-level .levels>div:hover {
+            cursor: pointer;
+            box-shadow: 0 0 10px 10px #CA7308;
+        }
+        #play-box {
+            display: none;
+        }
+        .time {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: url("pdimg/time.jpg") no-repeat;
+            background-size: 100% 100%;
+            opacity: 0.6;
+            font-size: 40px;
+            font-weight: bold;
+            color: red;
+            text-align: center;
+            line-height: 120px;
+            position: absolute;
+            top: 15%;
+            left: 10%;
+        }
+        .time:hover {
+            cursor: pointer;
+        }
+        #box {
+            margin-top: 300px;
+        }
+        #card {
+            width: 1100px;
+            height: 540px;
+            margin: 0 auto;
+            position: relative;
+        }
+        li {
+            width: 160px;
+            height: 240px;
+            display: inline-block;
+            margin: 10px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            position: absolute;
+            transform: rotateY(0deg);
+            transition: all 1s;
+        }
+        li>div {
+            width: 160px;
+            height: 240px;
+            border: 1px solid;
+            border-radius: 5px;
+        }
+        li>div:first-child {
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            transform: rotateY(180deg);
+        }
+        li>div:last-child {
+            background: url("pdimg/back.jpg") no-repeat;
+            background-size: 100% 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        input {
+             display: block;
+             width: 100px;
+             padding: 10px 20px;
+             margin: 10px auto;
+         }
+        .set div:hover {
+            cursor: pointer;
+        }
+        .set>div:first-child {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            opacity: 0.6;
+            font-size: 25px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 120px;
+            position: absolute;
+            top: 15%;
+            right: 15%;
+        }
+        .set>div:last-child {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            opacity: 0.6;
+            font-size: 25px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 120px;
+            position: absolute;
+            top: 15%;
+            right: 8%;
+        }
+    </style>
+</head>
+<body>
+    <div id="bg"><img src="pdimg/bg4.jpg"></div>
+    <div id="strat-play" onclick="stratPlay()">
+        开始游戏
+    </div>
+    <div id="game-level">
+        <p>关卡选择</p>
+        <div class="levels">
+            <div>第一关</div>
+            <div>第二关</div>
+            <div>第三关</div>
+            <div>第四关</div>
+        </div>
+    </div>
+    <div id="play-box">
+        <div class="time">
+            1:00
+        </div>
+        <div id="box">
+            <ul id="card">
+                <!--<li>-->
+                    <!--<div></div>-->
+                    <!--<div></div>-->
+                <!--</li>-->
+            </ul>
+        </div>
+        <div class="set">
+            <div class="restart" onclick="clickRestart()">重新开始</div>
+            <div class="return" onclick="clickReturn()">返回</div>
+        </div>
+    </div>
+
+    <script>
+        window.onresize = window.onload = function () {
+            var bgImg = document.getElementById('bg').getElementsByTagName('img')[0];
+            bgImg.width = document.documentElement.clientWidth;
+            bgImg.height= document.documentElement.clientHeight;
+        };
+
+        var stratPlays = document.getElementById("strat-play");
+        var playBox = document.getElementById("play-box");
+        var gameLevel = document.getElementById("game-level");
+        var levelsDivs = document.getElementsByClassName("levels")[0].getElementsByTagName("div");
+
+        //开始游戏
+        function stratPlay() {
+            stratPlays.style.display = "none";
+            gameLevel.style.display = "block";
+
+            gameLevels();
+        }
+        
+        //关卡选择
+        var levels = 0;//关卡数
+        function gameLevels() {
+            for(var i=0;i<levelsDivs.length;i++) {
+                levelsDivs[i].onclick = (function(i) {
+                    return function () {
+                        gameLevel.style.display = "none";
+                        playBox.style.display = "block";
+                        card.onclick = null;
+                        
+                        cardAdd(i);
+                        
+                        if(i===0) {
+                            maxtime = 120;
+                            levels = 1;
+                        }else if(i === 1) {
+                            maxtime = 60;
+                            levels = 2;
+                        }else if(i === 2) {
+                            maxtime = 40;
+                            levels = 3;
+                        }else {
+                            maxtime = 120;
+                            levels = 4;
+                        }
+                        time.innerHTML = "";
+                        clearInterval(timer);
+                        timer = setInterval(function () {
+                            getTime(1);
+                        },1000);
+                        turn();
+                    };
+                })(i);
+            }
+
+        }
+
+        var imgGroup = ["civilian.jpg","huntsman.jpg","prophet.jpg",
+            "sheriff.jpg","werewolf.jpg","witch.jpg"];
+        var card = document.getElementById("card");
+        var imgarr = [].concat(imgGroup,imgGroup);
+        var lis = card.getElementsByTagName("li");
+        
+        //牌面生成
+        function cardAdd(n) {
+            card.innerHTML = "";
+            imgarr = [];
+
+            if(n === 3) {
+                imgarr = [].concat(imgGroup,imgGroup,imgGroup,imgGroup);
+            }else {
+                imgarr = [].concat(imgGroup,imgGroup);
+            }
+
+            for(var i=0;i<imgarr.length;i++) {
+                var li = document.createElement("li");
+                var div1 = document.createElement("div");
+                var div2 = document.createElement("div");
+                li.appendChild(div1);
+                li.appendChild(div2);
+                div1.style.backgroundImage = 'url("pdimg/'+imgarr[i]+'")';
+                card.appendChild(li);
+            }
+
+            var liWidth = lis[0].offsetWidth;
+            var liHeight = lis[0].offsetHeight;
+            var liMarginRight = parseInt(window.getComputedStyle(lis[0]).marginRight);
+            var liMarginBottom = parseInt(window.getComputedStyle(lis[0]).marginBottom);
+
+            var arrcard = [];
+            for(var i=0;i<lis.length;i++) {
+                arrcard.push(i);
+            }
+            for(var i=arrcard.length-1;i>=1;i--){
+                var randomIndex = Math.floor(Math.random() * i);
+                var temp = arrcard[i];
+                arrcard[i] = arrcard[randomIndex];
+                arrcard[randomIndex] = temp;
+            }
+            for(var i=0;i<lis.length;i++) {
+                lis[arrcard[i]].style.left = (i%6)*(liWidth+liMarginRight*2)+ "px";
+                lis[arrcard[i]].style.top = Math.floor(i/6)*(liHeight+liMarginBottom) + "px";
+            }
+        }
+
+        //倒计时
+        var time = document.getElementsByClassName("time")[0];
+        var maxtime = 0;
+        function getTime(times) {
+            if(times) {
+                if (maxtime >= 0) {
+                    var minutes = Math.floor(maxtime / 60);
+                    var seconds = maxtime % 60;
+                    if(seconds < 10) {
+                        time.innerHTML = minutes + ":0"+seconds;
+                    }else {
+                        time.innerHTML = minutes + ":"+seconds;
+                    }
+                    --maxtime;
+                } else{
+                    clearInterval(timer);
+                    var r = confirm("时间到，游戏结束，返回关卡!");
+                    if(r) {
+                        gameLevel.style.display = "block";
+                        playBox.style.display = "none";
+                    }else {
+                        for(var i=0;i<imgarr.length;i++) {
+                            lis[i].onclick = null;
+                        }
+                        card.onclick = function () {
+                            alert("游戏已结束，请重新开始或点击返回")
+                        }
+                    }
+                }
+            }
+        }
+        var timer = setInterval(function () {
+            getTime();
+        },1000);
+
+        //翻牌
+        var flag = [];
+        var s = [];
+        var count = 0;
+        function turn() {
+            flag = [];
+            for(var i=0;i<imgarr.length;i++) {
+                flag.push(i+1);
+                lis[i].onclick = (function(i) {
+                    return function () {
+                        if(flag[i] > 0) {
+                            flag[i] = flag[i]*(-1);
+                            lis[i].style.transform = "rotateY(-180deg)";
+                            pair();
+                        }else{
+                            flag[i] = flag[i]*(-1);
+                            lis[i].style.transform = "rotateY(0deg)";
+                        }
+                    };
+                })(i);
+            }
+        }
+
+        //配对
+        function pair() {
+            s = [];
+            for(var i=0;i<imgarr.length;i++) {
+                if(flag[i] <0) {
+                    if(s.indexOf(flag[i]) === -1) {
+                        s.push(flag[i]);
+                    }
+                }
+                if(s.length === 2) {
+                    var t = setTimeout(function () {
+                        flag[(-1*s[0]-1)] = s[0]*(-1);
+                        flag[(-1*s[1]-1)] = s[1]*(-1);
+                        if(imgarr[(-1*s[0]-1)] === imgarr[(-1*s[1]-1)]) {
+                            lis[(-1*s[0]-1)].innerHTML = "";
+                            lis[(-1*s[1]-1)].innerHTML = "";
+                            count += 1;
+                            if(count === imgarr.length/2) {
+                                count = 0;
+                                clearInterval(timer);
+                                alert("轻松完成！");
+                                var w = confirm("继续挑战下一关？");
+                                if(w) {
+                                    gameLevel.style.display = "block";
+                                    playBox.style.display = "none";
+                                }else {
+                                    stratPlays.style.display = "block";
+                                    playBox.style.display = "none";
+                                }
+                            }
+                        }else {
+                            lis[(-1*s[0]-1)].style.transform = "rotateY(0deg)";
+                            lis[(-1*s[1]-1)].style.transform = "rotateY(0deg)";
+                            clearTimeout(t);
+                        }
+                        s = [];
+                    },800);
+                    break;
+                }
+            }
+
+        }
+
+        //重新开始
+        function clickRestart() {
+            card.onclick = null;
+            
+            if(levels === 4) {
+                cardAdd(3);
+            }else {
+                cardAdd();
+            }
+
+            switch(levels) {
+                case 1:
+                    maxtime = 120;
+                    break;
+                case 2:
+                    maxtime = 60;
+                    break;
+                case 3:
+                    maxtime = 40;
+                    break;
+                case 4:
+                    maxtime = 120;
+                    break;
+            }
+
+            clearInterval(timer);
+            timer = setInterval(function () {
+                getTime(1);
+            },1000);
+
+            turn();
+        }
+
+        //返回
+        function clickReturn() {
+            clearInterval(timer);
+            playBox.style.display = "none";
+            gameLevel.style.display = "block";
+        }
+
+    </script>
+</body>
+</html>
